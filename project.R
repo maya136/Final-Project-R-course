@@ -5,14 +5,13 @@
 source('.//functions.R')
 library(dplyr)
 library(ggplot2)
+library(ggdist)
 library(pROC)
-library(ggpubr)
 library(broom)
 library(tidyr)
 
 
 # Variables ----
-data_folder_path         <- ".//data/"
 baseline_df_csv_path     <- ".//data/first.csv"
 last_df_csv_control      <- ".//data/control.csv"
 last_df_csv_intervention <- ".//data/intervention.csv"
@@ -98,30 +97,20 @@ control_filtered <- control_filtered[control_filtered$Progress == 100, ]
 intervention_filtered <- intervention_filtered[intervention_filtered$Progress == 100, ]
 
 
-
-
-
-
-
-
-
 # שלב ב' - עיבוד מקדים של הנתונים ----
 # Merge boys and girls columns ----
-# baseline
 combined_baseline_df = baseline_filtered
 columns_to_merge_baseline <- c(NM_cols, DASS_cols, SDQ_cols, CSHQ_cols)
 for (col in columns_to_merge_baseline) {
   combined_baseline_df <- merge_boys_and_girls_columns(combined_baseline_df, col)
 }
 
-# control
 combined_control_df = control_filtered
 columns_to_merge_control <- c(NM_cols)
 for (col in columns_to_merge_control) {
   combined_control_df <- merge_boys_and_girls_columns(combined_control_df, col)
 }
 
-# intervention
 combined_intervention_df = intervention_filtered
 columns_to_merge_intervention <- c(NM_cols, COMPLIANCE_cols)
 for (col in columns_to_merge_intervention) {
@@ -174,12 +163,9 @@ combined_df$ParticipantId <- trimws(combined_df$ParticipantId)
 combined_df <- combined_df[combined_df$ParticipantId %in% participant_ids, ]
 
 
-
-
-
-
 # שלב א' - הצגת הנתונים האקספלורטיבית  ----
 # Box plots ----
+# change in night count
 ggplot(combined_df, aes(x = group, y = change_night_count, fill = group)) +
   geom_boxplot() +
   theme_minimal() +
@@ -187,13 +173,10 @@ ggplot(combined_df, aes(x = group, y = change_night_count, fill = group)) +
        x = "Group", y = "Change in Night Count")
 
 # Each group has 2 - baseline and last
-# Reshape data to long format
-long_df <- combined_df %>%
+long_df <- combined_df |>
   pivot_longer(cols = c(night.count_baseline, night.count), 
                names_to = "Timepoint", 
                values_to = "Night_Count")
-
-# Rename the timepoints for better readability
 long_df$Timepoint <- recode(long_df$Timepoint, 
                             night.count_baseline = "Baseline",
                             night.count = "After 4 Weeks")
@@ -203,12 +186,10 @@ ggplot(long_df, aes(x = group, y = Night_Count, fill = Timepoint)) +
   theme_minimal() +
   labs(title = "Night Count Comparison: Baseline vs. After 4 Weeks",
        x = "Group", y = "Night Count") +
-  scale_fill_manual(values = c("Baseline" = "blue", "After 4 Weeks" = "red")) +
-  theme(legend.title = element_blank())
+  scale_fill_manual(values = c("Baseline" = "blue", "After 4 Weeks" = "red"))
 
 
-# Intensity
-
+# change in nightmare intensity
 ggplot(combined_df, aes(x = group, y = change_nm_intensity, fill = group)) +
   geom_boxplot() +
   theme_minimal() +
@@ -216,13 +197,10 @@ ggplot(combined_df, aes(x = group, y = change_nm_intensity, fill = group)) +
        x = "Group", y = "Change in NM intensity")
 
 # Each group has 2 - baseline and last
-# Reshape data to long format
-long_df <- combined_df %>%
+long_df <- combined_df |>
   pivot_longer(cols = c(NM.intensity_baseline, NM.intensity), 
                names_to = "Timepoint", 
                values_to = "Intensity")
-
-# Rename the timepoints for better readability
 long_df$Timepoint <- recode(long_df$Timepoint, 
                             NM.intensity_baseline = "Baseline",
                             NM.intensity = "After 4 Weeks")
@@ -232,8 +210,7 @@ ggplot(long_df, aes(x = group, y = Intensity, fill = Timepoint)) +
   theme_minimal() +
   labs(title = "NM intensity Comparison: Baseline vs. After 4 Weeks",
        x = "Group", y = "NM intensity") +
-  scale_fill_manual(values = c("Baseline" = "blue", "After 4 Weeks" = "red")) +
-  theme(legend.title = element_blank())
+  scale_fill_manual(values = c("Baseline" = "blue", "After 4 Weeks" = "red"))
 
 
 # Violin plots ----
@@ -253,6 +230,25 @@ ggplot(combined_df, aes(x = group, y = change_nm_intensity, fill = group)) +
 
 
 
+# Distributions of predictors ----
+long_df <- combined_df |>
+  select(group, sum_dass, sum_sdq, sum_cshq) |>
+  pivot_longer(cols = c(sum_dass, sum_sdq, sum_cshq), 
+               names_to = "Predictor", 
+               values_to = "Value")
+
+ggplot(long_df, aes(x = Value, y = Predictor, fill = group, color = group)) +
+  stat_halfeye(alpha = 0.6, adjust = 0.5, justification = -0.2) +  
+  geom_boxplot(width = 0.2, position = position_dodge(width = 0.6), alpha = 0.4) +  
+  theme_minimal() +
+  scale_fill_manual(values = c("control" = "blue", "intervention" = "red")) +
+  scale_color_manual(values = c("control" = "blue", "intervention" = "red")) +
+  labs(title = "Distributions of Predictors by Group", 
+       x = "Value", 
+       y = "Predictor", 
+       fill = "Group", 
+       color = "Group") +
+  theme(legend.position = "top")
 
 
 # שלב ג' - ניתוח הנתונים ----
@@ -261,7 +257,7 @@ model <- lm(change_night_count ~ sum_dass + sum_sdq + sum_cshq + group, data = c
 summary(model)
 
 # plot coefficients
-coef_df <- tidy(model) %>% 
+coef_df <- tidy(model) |> 
   filter(term != "(Intercept)")  
 
 ggplot(coef_df, aes(x = term, y = estimate)) +
@@ -282,7 +278,7 @@ summary(logit_model)
 # plot coefficients
 intervenetion_df$predicted_prob <- predict(logit_model, type="response")
 
-coef_df <- tidy(logit_model, conf.int = TRUE) %>% 
+coef_df <- tidy(logit_model, conf.int = TRUE) |> 
   filter(term != "(Intercept)")  
 ggplot(coef_df, aes(x = term, y = estimate, ymin = conf.low, ymax = conf.high)) +
   geom_pointrange() + 
@@ -306,8 +302,8 @@ ggplot(intervenetion_df, aes(x = sum_parent, y = predicted_prob)) +
   labs(title = "Logistic Regression: Probability of Improvement",
        x = "Sum Parent Score", y = "Predicted Probability of Improvement")
 
-# ROC ----
 
+# ROC ----
 roc_curve <- roc(intervenetion_df$improved, intervenetion_df$predicted_prob)
 
 ggroc(roc_curve) +
@@ -319,10 +315,7 @@ auc_value <- auc(roc_curve)
 cat("AUC:", auc_value, "\n")
 
 
-
-
-
-# Extra analysis ----
+# Extra analysis - Appendix out of interest ----
 # Linear regression for change in nightmare intensity ----
 model <- lm(change_nm_intensity ~ sum_dass + sum_sdq + sum_cshq + group, data = combined_df)
 summary(model)
@@ -331,13 +324,14 @@ model_interaction <- lm(change_nm_intensity ~ sum_dass * group + sum_sdq * group
 summary(model_interaction)
 
 # plot coefficients
-coef_df <- tidy(model) %>% 
+coef_df <- tidy(model) |> 
   filter(term != "(Intercept)")  
 ggplot(coef_df, aes(x = term, y = estimate)) +
   geom_col(fill = "steelblue") +
   geom_errorbar(aes(ymin = estimate - std.error, ymax = estimate + std.error), width = 0.2) +
   coord_flip() +
   labs(title = "Regression Coefficients - Nightmare Intensity", x = "Predictor", y = "Estimate")
+
 
 # Correlation between compliance and change in night count in intervention group ----
 cor_parent_change <- cor(intervention_filtered$sum_parent, intervention_filtered$change_night_count, use = "complete.obs")
