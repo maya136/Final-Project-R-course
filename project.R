@@ -1,15 +1,15 @@
 ### Final Project R course
 ### Created by: Maya Pohes
-### id: 315114744
 
 # Packages and imports ----
-source('.//Functions.R')
+source('.//functions.R')
 library(dplyr)
 library(ggplot2)
 library(pROC)
 library(ggpubr)
 library(broom)
 library(tidyr)
+
 
 # Variables ----
 data_folder_path         <- ".//data/"
@@ -103,6 +103,8 @@ intervention_filtered <- intervention_filtered[intervention_filtered$Progress ==
 
 
 
+
+
 # שלב ב' - עיבוד מקדים של הנתונים ----
 # Merge boys and girls columns ----
 # baseline
@@ -170,6 +172,8 @@ combined_df <- combined_df[!is.na(combined_df$NM.intensity) & !is.na(combined_df
 # Drop participants that are not in participants list ----
 combined_df$ParticipantId <- trimws(combined_df$ParticipantId)
 combined_df <- combined_df[combined_df$ParticipantId %in% participant_ids, ]
+
+
 
 
 
@@ -249,9 +253,9 @@ ggplot(combined_df, aes(x = group, y = change_nm_intensity, fill = group)) +
 
 
 
-# שלב ג' - ניתוח הנתונים ----
-View(combined_df)
 
+
+# שלב ג' - ניתוח הנתונים ----
 # Linear Regression ----
 model <- lm(change_night_count ~ sum_dass + sum_sdq + sum_cshq + group, data = combined_df)
 summary(model)
@@ -313,6 +317,8 @@ ggroc(roc_curve) +
 
 auc_value <- auc(roc_curve)
 cat("AUC:", auc_value, "\n")
+
+
 
 
 
