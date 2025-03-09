@@ -1,5 +1,6 @@
 # Functions
 
+
 # Goal: merge double columns
 merge_boys_and_girls_columns <- function(df, colname) {
   col1 <- colname 
