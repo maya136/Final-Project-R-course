@@ -1,5 +1,14 @@
-### Final Project R course
-### Created by: Maya Pohes
+### Final Project R course - Tel Aviv University ###
+############## Created by: Maya Pohes ##############
+############## Created at: March 2025 ##############
+
+### This script has 3 main parts:
+### 1. שלב ב' - עיבוד מקדים של הנתונים
+### 2. שלב א' - הצגת הנתונים האקספלורטיבית
+### 3. שלב ג' - ניתוח הנתונים
+
+### The other textual requirements of the final project were uploaded to the moodle
+
 
 # Packages and imports ----
 source('.//functions.R')
@@ -11,7 +20,7 @@ library(broom)
 library(tidyr)
 
 
-# Variables ----
+# Variables and Constants ----
 baseline_df_csv_path     <- ".//data/first.csv"
 last_df_csv_control      <- ".//data/control.csv"
 last_df_csv_intervention <- ".//data/intervention.csv"
@@ -76,7 +85,10 @@ RELEVANT_COLS_CONTROL     <- c(NM_cols, NM_cols_1)
 RELEVANT_COLS_INTERVENTION <- c(NM_cols, NM_cols_1, COMPLIANCE_cols, COMPLIANCE_cols1)
 
 
-# Read relevant data ----
+
+
+# שלב ב' - עיבוד מקדים של הנתונים ----
+# Read ONLY relevant data 
 baseline_df = read.csv(baseline_df_csv_path, header = TRUE)[-1,]
 last_control = read.csv(last_df_csv_control, header = TRUE)[-1,]
 last_intervention = read.csv(last_df_csv_intervention, header = TRUE)[-1,]
@@ -85,11 +97,13 @@ new_baseline_df = subset(baseline_df, select = RELEVANT_COLS_BASELINE)
 control_df = subset(last_control, select = RELEVANT_COLS_CONTROL)
 intervention_df = subset(last_intervention, select = RELEVANT_COLS_INTERVENTION)
 
+
 # leave in ONLY ids that have 2 questionnaires
 filtered_data = sort_by_participant_id(new_baseline_df, control_df, intervention_df)
 baseline_filtered <- filtered_data$baseline
 control_filtered <- filtered_data$control
 intervention_filtered <- filtered_data$intervention
+
 
 # drop rows where "Progress" column is not 100
 baseline_filtered <- baseline_filtered[baseline_filtered$Progress == 100, ]
@@ -97,8 +111,7 @@ control_filtered <- control_filtered[control_filtered$Progress == 100, ]
 intervention_filtered <- intervention_filtered[intervention_filtered$Progress == 100, ]
 
 
-# שלב ב' - עיבוד מקדים של הנתונים ----
-# Merge boys and girls columns ----
+# Merge boys and girls columns 
 combined_baseline_df = baseline_filtered
 columns_to_merge_baseline <- c(NM_cols, DASS_cols, SDQ_cols, CSHQ_cols)
 for (col in columns_to_merge_baseline) {
@@ -118,13 +131,13 @@ for (col in columns_to_merge_intervention) {
 }
 
 
-# Create sum values for each metric questions scores in baseline & compliance in intervention only ----
+# Create sum values for each metric questions scores in baseline & compliance in intervention only 
 combined_baseline_df = baseline_metrics_calculate(combined_baseline_df, DASS_cols, SDQ_cols, CSHQ_cols)
 combined_intervention_df[COMPLIANCE_cols] <- lapply(combined_intervention_df[COMPLIANCE_cols], as.integer)
 combined_intervention_df = intervention_metrics_calculate(combined_intervention_df)
 
 
-# Merge baseline with control/intervention group by ParticipantId column ----
+# Merge baseline with control/intervention group by ParticipantId column
 control_filtered <- merge(combined_control_df, 
                           combined_baseline_df[, c("ParticipantId", "night.count", "NM.intensity")], 
                           by = "ParticipantId", suffixes = c("", "_baseline"))
@@ -142,10 +155,11 @@ intervention_filtered$change_nm_intensity <-
   intervention_filtered$NM.intensity - intervention_filtered$NM.intensity_baseline
 
 
-# Add group labels & Combine ----
+# Add group labels & Combine
 control_filtered$group <- "control"
 intervention_filtered$group <- "intervention"
 combined_df <- bind_rows(control_filtered, intervention_filtered)
+
 
 # Merge with baseline predictors
 combined_df <- merge(combined_df, combined_baseline_df[, c("ParticipantId", "sum_dass", "sum_sdq", "sum_cshq")], by = "ParticipantId")
@@ -153,12 +167,12 @@ combined_df$group <- factor(combined_df$group, levels = c("control", "interventi
 contrasts(combined_df$group)
 
 
-# Leave in only rows where night.count or night.count_baseline or NM.intensity or NM.intensity_baseline is not NA ----
+# Leave in only rows where night.count or night.count_baseline or NM.intensity or NM.intensity_baseline is not NA
 combined_df <- combined_df[!is.na(combined_df$night.count) & !is.na(combined_df$night.count_baseline), ]
 combined_df <- combined_df[!is.na(combined_df$NM.intensity) & !is.na(combined_df$NM.intensity_baseline), ]
 
 
-# Drop participants that are not in participants list ----
+# Drop participants that are not in participants list
 combined_df$ParticipantId <- trimws(combined_df$ParticipantId)
 combined_df <- combined_df[combined_df$ParticipantId %in% participant_ids, ]
 
@@ -172,7 +186,7 @@ ggplot(combined_df, aes(x = group, y = change_night_count, fill = group)) +
   labs(title = "Change in Night Count: Control vs. Intervention",
        x = "Group", y = "Change in Night Count")
 
-# Each group has 2 - baseline and last
+# Each group has 2 measuring points- baseline and last
 long_df <- combined_df |>
   pivot_longer(cols = c(night.count_baseline, night.count), 
                names_to = "Timepoint", 
@@ -196,7 +210,7 @@ ggplot(combined_df, aes(x = group, y = change_nm_intensity, fill = group)) +
   labs(title = "Change in NM intensity: Control vs. Intervention",
        x = "Group", y = "Change in NM intensity")
 
-# Each group has 2 - baseline and last
+# Each group has 2  measuring points - baseline and last
 long_df <- combined_df |>
   pivot_longer(cols = c(NM.intensity_baseline, NM.intensity), 
                names_to = "Timepoint", 
@@ -248,7 +262,7 @@ ggplot(long_df, aes(x = Value, y = Predictor, fill = group, color = group)) +
        y = "Predictor", 
        fill = "Group", 
        color = "Group") +
-  theme(legend.position = "top")
+  theme(legend.position = "right")
 
 
 # שלב ג' - ניתוח הנתונים ----
@@ -260,6 +274,7 @@ summary(model)
 coef_df <- tidy(model) |> 
   filter(term != "(Intercept)")  
 
+# plot effects - coefficients
 ggplot(coef_df, aes(x = term, y = estimate)) +
   geom_col(fill = "steelblue") +
   geom_errorbar(aes(ymin = estimate - std.error, ymax = estimate + std.error), width = 0.2) +
@@ -275,7 +290,8 @@ logit_model <- glm(improved ~ sum_parent + sum_child,
                    data = intervenetion_df, family = binomial)
 summary(logit_model)  
 
-# plot coefficients
+
+# plot effects - coefficients
 intervenetion_df$predicted_prob <- predict(logit_model, type="response")
 
 coef_df <- tidy(logit_model, conf.int = TRUE) |> 
@@ -287,27 +303,23 @@ ggplot(coef_df, aes(x = term, y = estimate, ymin = conf.low, ymax = conf.high)) 
        x = "Predictor", y = "Estimate (Log Odds)") +
   theme_minimal()
 
-# Additional plots
-ggplot(intervenetion_df, aes(x = sum_child, y = predicted_prob)) +
-  geom_point(alpha = 0.6) +
-  geom_smooth(method = "glm", method.args = list(family = "binomial"), se = FALSE) +
-  theme_minimal() +
-  labs(title = "Logistic Regression: Probability of Improvement",
-       x = "Sum Child Score", y = "Predicted Probability of Improvement")
+# extra plot
+intervention_long <- intervenetion_df |>
+  pivot_longer(cols = c(sum_child, sum_parent), names_to = "Predictor", values_to = "Score")
 
-ggplot(intervenetion_df, aes(x = sum_parent, y = predicted_prob)) +
+ggplot(intervention_long, aes(x = Score, y = predicted_prob)) +
   geom_point(alpha = 0.6) +
-  geom_smooth(method = "glm", method.args = list(family = "binomial"), se = FALSE) +
+  geom_smooth(method = "glm", method.args = list(family = "binomial"), se = FALSE, color = "light blue") +
   theme_minimal() +
-  labs(title = "Logistic Regression: Probability of Improvement",
-       x = "Sum Parent Score", y = "Predicted Probability of Improvement")
+  labs(title = "Logistic Regression: Probability of Improvement by predictors scale",
+       x = "Score", y = "Predicted Probability") +
+  facet_wrap(~Predictor, scales = "free_x") 
 
 
 # ROC ----
 roc_curve <- roc(intervenetion_df$improved, intervenetion_df$predicted_prob)
 
 ggroc(roc_curve) +
-  geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "gray") +
   ggtitle("ROC Curve for Logistic Regression") +
   theme_minimal()
 
@@ -316,7 +328,7 @@ cat("AUC:", auc_value, "\n")
 
 
 # Extra analysis - Appendix out of interest ----
-# Linear regression for change in nightmare intensity ----
+# Linear regression for change in nightmare intensity
 model <- lm(change_nm_intensity ~ sum_dass + sum_sdq + sum_cshq + group, data = combined_df)
 summary(model)
 
@@ -330,14 +342,4 @@ ggplot(coef_df, aes(x = term, y = estimate)) +
   geom_col(fill = "steelblue") +
   geom_errorbar(aes(ymin = estimate - std.error, ymax = estimate + std.error), width = 0.2) +
   coord_flip() +
-  labs(title = "Regression Coefficients - Nightmare Intensity", x = "Predictor", y = "Estimate")
-
-
-# Correlation between compliance and change in night count in intervention group ----
-cor_parent_change <- cor(intervention_filtered$sum_parent, intervention_filtered$change_night_count, use = "complete.obs")
-cor_child_change <- cor(intervention_filtered$sum_child, intervention_filtered$change_night_count, use = "complete.obs")
-cor_parent_child <- cor(intervention_filtered$sum_parent, intervention_filtered$sum_child, use = "complete.obs")
-
-cat("Correlation between sum_parent and change_night_count:", cor_parent_change, "\n")
-cat("Correlation between sum_child and change_night_count:", cor_child_change, "\n")
-cat("Correlation between sum_child and sum_parent:", cor_parent_child, "\n")
+  labs(title = "Linear Regression Coefficients - Nightmare Intensity", x = "Predictor", y = "Estimate")
