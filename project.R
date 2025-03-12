@@ -341,26 +341,3 @@ cor_parent_child <- cor(intervention_filtered$sum_parent, intervention_filtered$
 cat("Correlation between sum_parent and change_night_count:", cor_parent_change, "\n")
 cat("Correlation between sum_child and change_night_count:", cor_child_change, "\n")
 cat("Correlation between sum_child and sum_parent:", cor_parent_child, "\n")
-
-# plots
-ggplot(intervention_filtered, aes(x = sum_parent, y = change_night_count)) +
-  geom_point(color = "blue", alpha = 0.7) +
-  geom_smooth(method = "lm", color = "black", se = FALSE) +
-  theme_minimal() +
-  labs(title = "Intervention Group: Correlation of Sum Parent & Direction Change in Night Count",
-       x = "Sum Parent", y = "Direction Change in Night Count")
-
-ggplot(intervention_filtered, aes(x = sum_child, y = change_night_count)) +
-  geom_point(color = "red", alpha = 0.7) +
-  geom_smooth(method = "lm", color = "black", se = FALSE) +
-  theme_minimal() +
-  labs(title = "Intervention Group: Correlation of Sum Child & Direction Change in Night Count",
-       x = "Sum Child", y = "Direction Change in Night Count")
-
-ggplot(intervention_filtered, aes(x = sum_parent, y = sum_child)) +
-  geom_point(color = "purple", alpha = 0.7) +  # Use correct color
-  geom_smooth(method = "lm", color = "black", se = FALSE) +
-  theme_minimal() +
-  labs(title = "Intervention Group: Correlation of Sum Parent & Sum Child",
-       x = "Sum Parent", y = "Sum Child")
-
