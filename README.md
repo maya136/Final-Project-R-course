@@ -3,7 +3,7 @@
 
  ## Files Guide:
  1. project.R - Main code file
- 2. Functions.R - Additional functions file
+ 2. functions.R - Additional functions file
  3. data.zip - LOCKED zip containing data analayzed in the project. Password was provided to the needed people.
 
  ## Usage Guide:
