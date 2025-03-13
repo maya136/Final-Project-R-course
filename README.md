@@ -5,6 +5,7 @@
  1. project.R - Main code file
  2. functions.R - Additional functions file
  3. data.zip - LOCKED zip containing data analayzed in the project. Password was provided to the needed people.
+ 4. final textual document - עבודה מסכמת מאיה פוחס.pdf
 
  ## Usage Guide:
 1. clone the repo 
