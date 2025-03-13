@@ -7,8 +7,6 @@
 ### 2. שלב א' - הצגת הנתונים האקספלורטיבית
 ### 3. שלב ג' - ניתוח הנתונים
 
-### The other textual requirements of the final project were uploaded to the moodle
-
 
 # Packages and imports ----
 source('.//functions.R')
