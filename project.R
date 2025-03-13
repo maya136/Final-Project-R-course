@@ -182,9 +182,9 @@ combined_df <- combined_df[combined_df$ParticipantId %in% participant_ids, ]
 # change in night count
 ggplot(combined_df, aes(x = group, y = change_night_count, fill = group)) +
   geom_boxplot() +
-  theme_minimal() +
   labs(title = "Change in Night Count: Control vs. Intervention",
-       x = "Group", y = "Change in Night Count")
+       x = "Group", y = "Change in Night Count") + 
+  theme_minimal()
 
 # Each group has 2 measuring points- baseline and last
 long_df <- combined_df |>
@@ -197,18 +197,18 @@ long_df$Timepoint <- recode(long_df$Timepoint,
 
 ggplot(long_df, aes(x = group, y = Night_Count, fill = Timepoint)) +
   geom_boxplot(position = position_dodge(0.8), width = 0.6) +
-  theme_minimal() +
   labs(title = "Night Count Comparison: Baseline vs. After 4 Weeks",
        x = "Group", y = "Night Count") +
-  scale_fill_manual(values = c("Baseline" = "blue", "After 4 Weeks" = "red"))
+  scale_fill_manual(values = c("Baseline" = "blue", "After 4 Weeks" = "red")) + 
+  theme_minimal()
 
 
 # change in nightmare intensity
 ggplot(combined_df, aes(x = group, y = change_nm_intensity, fill = group)) +
   geom_boxplot() +
-  theme_minimal() +
   labs(title = "Change in NM intensity: Control vs. Intervention",
-       x = "Group", y = "Change in NM intensity")
+       x = "Group", y = "Change in NM intensity") + 
+  theme_minimal()
 
 # Each group has 2  measuring points - baseline and last
 long_df <- combined_df |>
@@ -221,27 +221,26 @@ long_df$Timepoint <- recode(long_df$Timepoint,
 
 ggplot(long_df, aes(x = group, y = Intensity, fill = Timepoint)) +
   geom_boxplot(position = position_dodge(0.8), width = 0.6) +
-  theme_minimal() +
   labs(title = "NM intensity Comparison: Baseline vs. After 4 Weeks",
        x = "Group", y = "NM intensity") +
-  scale_fill_manual(values = c("Baseline" = "blue", "After 4 Weeks" = "red"))
+  scale_fill_manual(values = c("Baseline" = "blue", "After 4 Weeks" = "red")) + 
+  theme_minimal()
 
 
 # Violin plots ----
 ggplot(combined_df, aes(x = group, y = change_night_count, fill = group)) +
   geom_violin(alpha = 0.5) +
-  theme_minimal() +
   labs(title = "Change in Night Count After 4 Weeks: Control vs. Intervention",
        x = "Group", y = "Change in Night Count") +
-  scale_fill_manual(values = c("control" = "red", "intervention" = "blue"))
+  scale_fill_manual(values = c("control" = "red", "intervention" = "blue")) + 
+  theme_minimal()
 
 ggplot(combined_df, aes(x = group, y = change_nm_intensity, fill = group)) +
   geom_violin(alpha = 0.5) +
-  theme_minimal() +
   labs(title = "Change in Nightmare Intensity After 4 Weeks: Control vs. Intervention",
        x = "Group", y = "Change in Nightmare Intensity") +
-  scale_fill_manual(values = c("control" = "red", "intervention" = "blue"))
-
+  scale_fill_manual(values = c("control" = "red", "intervention" = "blue")) + 
+  theme_minimal()
 
 
 # Distributions of predictors ----
@@ -279,7 +278,8 @@ ggplot(coef_df, aes(x = term, y = estimate)) +
   geom_col(fill = "steelblue") +
   geom_errorbar(aes(ymin = estimate - std.error, ymax = estimate + std.error), width = 0.2) +
   coord_flip() +
-  labs(title = "Regression Coefficients - Change in Night Count", x = "Predictor", y = "Estimate")
+  labs(title = "Regression Coefficients - Change in Night Count", x = "Predictor", y = "Estimate") + 
+  theme_minimal()
 
 
 # Logistic Regression ----
@@ -342,4 +342,5 @@ ggplot(coef_df, aes(x = term, y = estimate)) +
   geom_col(fill = "steelblue") +
   geom_errorbar(aes(ymin = estimate - std.error, ymax = estimate + std.error), width = 0.2) +
   coord_flip() +
-  labs(title = "Linear Regression Coefficients - Nightmare Intensity", x = "Predictor", y = "Estimate")
+  labs(title = "Linear Regression Coefficients - Nightmare Intensity", x = "Predictor", y = "Estimate")  + 
+  theme_minimal()
